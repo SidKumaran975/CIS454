@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="JobTrail auto job tracker demo">
+  <title>JobTrail — Auto Job Tracker</title>
+  <link rel="stylesheet" href="styles.css?v=7">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <a class="brand" href="#" aria-label="JobTrail home">
+        <span class="brand-mark">J</span>
+        <span>JobTrail</span>
+      </a>
+
+      <nav class="nav-list">
+        <a class="nav-item active" href="#discover" data-view="discover">
+          <span class="nav-icon">⌕</span><span>Discover</span><span class="nav-count" id="new-count">0</span>
+        </a>
+        <a class="nav-item" href="#urgent" data-view="urgent">
+          <span class="nav-icon">⚡</span><span>Urgent</span><span class="nav-count" id="urgent-count">0</span>
+        </a>
+        <a class="nav-item" href="#saved" data-view="saved">
+          <span class="nav-icon">♡</span><span>Saved</span><span class="nav-count" id="saved-count">0</span>
+        </a>
+        <a class="nav-item" href="#applications" data-view="applied">
+          <span class="nav-icon">✓</span><span>Applications</span><span class="nav-count" id="applied-count">0</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-label">Workspace</div>
+      <nav class="nav-list">
+        <button class="nav-item button-reset" id="profile-button">
+          <span class="nav-icon">◎</span><span>My profile</span>
+        </button>
+        <button class="nav-item button-reset" id="settings-button">
+          <span class="nav-icon">⚙</span><span>Digest settings</span>
+        </button>
+      </nav>
+
+      <div class="profile-mini">
+        <div class="avatar">U</div>
+        <div>
+          <strong>Local profile</strong>
+          <span>Job search</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">MONDAY, NOVEMBER 17</div>
+          <h1 id="page-title">Good morning</h1>
+        </div>
+        <div class="topbar-actions">
+          <span class="sync-status" id="sync-status"><span class="pulse"></span> Loading database…</span>
+          <button class="icon-button" id="notification-button" aria-label="Enable urgent notifications" title="Enable urgent notifications">●</button>
+          <button class="primary-button" id="collect-button"><span>↻</span> Collect new jobs</button>
+        </div>
+      </header>
+
+      <div id="dashboard-view">
+      <section class="hero-panel">
+        <div>
+          <span class="hero-kicker">SPEED MODE · 5-MINUTE SCANS</span>
+          <h2 id="hero-title">Collecting live job postings…</h2>
+          <p id="hero-description">Connecting to Greenhouse and Lever and saving normalized listings in SQLite.</p>
+        </div>
+        <div class="hero-score">
+          <span class="score-value" id="top-score">—</span>
+          <span class="score-label">top match</span>
+        </div>
+      </section>
+
+      <section class="metric-grid" aria-label="Job search summary">
+        <article class="metric-card">
+          <span class="metric-icon coral">↗</span>
+          <div><span>Urgent now</span><strong id="metric-new">0</strong></div>
+          <small>Strong matches under 2 hours</small>
+        </article>
+        <article class="metric-card">
+          <span class="metric-icon violet">♡</span>
+          <div><span>Saved</span><strong id="metric-saved">0</strong></div>
+          <small>Persisted between sessions</small>
+        </article>
+        <article class="metric-card">
+          <span class="metric-icon green">✓</span>
+          <div><span>Applied</span><strong id="metric-applied">0</strong></div>
+          <small>This week</small>
+        </article>
+        <article class="metric-card">
+          <span class="metric-icon gold">◎</span>
+          <div><span>Active sources</span><strong id="metric-sources">0</strong></div>
+          <small>Greenhouse + Lever</small>
+        </article>
+      </section>
+
+      <section class="content-grid">
+        <div class="jobs-panel">
+          <div class="section-heading">
+            <div>
+              <h2 id="list-heading">Newest jobs for you</h2>
+              <p id="result-count">Showing the most recently updated postings first</p>
+            </div>
+            <button class="text-button" id="clear-filters">Clear filters</button>
+          </div>
+
+          <div class="filter-bar" aria-label="Job filters">
+            <label class="search-box">
+              <span>⌕</span>
+              <input id="search-input" type="search" placeholder="Search title, company, or skill">
+            </label>
+            <select id="location-filter" aria-label="Location">
+              <option value="all">Any location</option>
+              <option value="remote">Remote</option>
+              <option value="new-york">New York</option>
+              <option value="boston">Boston</option>
+            </select>
+            <select id="type-filter" aria-label="Job type">
+              <option value="all">All job types</option>
+              <option value="full-time">Full-time</option>
+              <option value="internship">Internship</option>
+            </select>
+            <button class="filter-button" id="match-filter">80+ match</button>
+          </div>
+
+          <div class="job-list" id="job-list" aria-live="polite"></div>
+        </div>
+
+        <aside class="insights-column">
+          <section class="side-card next-digest">
+            <div class="side-card-heading">
+              <span class="side-icon">☀</span>
+              <span class="status-pill">ON SCHEDULE</span>
+            </div>
+            <h3>Next digest</h3>
+            <div class="digest-time" id="next-digest-time">—</div>
+            <p id="next-digest-label">Loading persisted schedule…</p>
+            <button class="secondary-button full-width" id="preview-digest">Preview report</button>
+          </section>
+
+          <section class="side-card">
+            <div class="side-card-heading">
+              <h3>Your search profile</h3>
+              <button class="link-button" id="edit-profile">Edit</button>
+            </div>
+            <div class="profile-role">Technology roles</div>
+            <div class="tag-list">
+              <span>Remote</span><span>United States</span>
+            </div>
+            <div class="skill-row">
+              <span>Add skills in your profile</span>
+            </div>
+            <button class="secondary-button full-width import-profile-button" id="import-profile-button">↥ Build profile from files</button>
+          </section>
+
+          <section class="side-card source-card">
+            <div class="side-card-heading"><h3>Source health</h3><span class="healthy" id="source-health-label">Checking…</span></div>
+            <div id="source-list"></div>
+          </section>
+        </aside>
+      </section>
+      </div>
+
+      <section id="profile-page" class="profile-page" hidden>
+        <div class="profile-page-head">
+          <div>
+            <span class="hero-kicker profile-kicker">YOUR MATCHING PROFILE</span>
+            <h2>Tell JobTrail who you are and what you want</h2>
+            <p>Candidate facts and search preferences are kept separate so every job score can be explained.</p>
+          </div>
+          <button class="secondary-button" id="back-to-jobs" type="button">← Back to jobs</button>
+        </div>
+
+        <form id="dedicated-profile-form" class="profile-workspace">
+          <section class="profile-section-card">
+            <div class="profile-section-number">1</div>
+            <div class="profile-section-copy">
+              <span class="modal-kicker">CANDIDATE FACTS</span>
+              <h3>Who I am</h3>
+              <p>This is evidence about you. Skills entered here are compared with each job description.</p>
+            </div>
+            <div class="profile-fields two-column">
+              <label class="field-label">Full name<input id="identity-name" type="text" autocomplete="name"></label>
+              <label class="field-label">Professional headline<input id="identity-headline" type="text" placeholder="Cloud-focused technical problem solver"></label>
+              <label class="field-label">Email<input id="identity-email" type="email" autocomplete="email"></label>
+              <label class="field-label">Phone<input id="identity-phone" type="tel" autocomplete="tel"></label>
+              <label class="field-label">Years of relevant experience<input id="identity-experience" type="number" min="0" max="50" value="0"></label>
+              <label class="field-label">Education<input id="identity-education" type="text" placeholder="B.S. Information Systems, Syracuse University"></label>
+              <label class="field-label wide">Skills <span class="field-help">Comma-separated</span><input id="identity-skills" type="text" placeholder="Python, AWS, APIs, SQL, customer-facing"></label>
+              <label class="field-label wide">Certifications<input id="identity-certifications" type="text" placeholder="AWS Cloud Practitioner, Azure Fundamentals"></label>
+              <label class="field-label wide">Professional summary<textarea id="identity-summary" rows="5" placeholder="A concise summary extracted from your experience and projects"></textarea></label>
+              <label class="field-label">Work authorization<input id="identity-authorization" type="text" placeholder="Only include if stated in your documents"></label>
+              <label class="field-label">Security clearance<input id="identity-clearance" type="text" placeholder="Only include if stated in your documents"></label>
+              <label class="field-label">Languages<input id="identity-languages" type="text" placeholder="English, Spanish"></label>
+              <label class="field-label">Portfolio links<input id="identity-links" type="text" placeholder="GitHub, portfolio, LinkedIn"></label>
+            </div>
+            <button class="secondary-button profile-import-action" id="profile-page-import" type="button">↥ Import LinkedIn PDF or CV</button>
+            <div class="ai-profile-status" id="ai-profile-status">Checking local AI…</div>
+            <div class="profile-depth-grid">
+              <section><div class="profile-depth-heading"><h4>Work experience</h4><span id="experience-count">0</span></div><div id="experience-list" class="profile-entry-list"></div></section>
+              <section><div class="profile-depth-heading"><h4>Education history</h4><span id="education-count">0</span></div><div id="education-list" class="profile-entry-list"></div></section>
+              <section><div class="profile-depth-heading"><h4>Projects</h4><span id="projects-count">0</span></div><div id="projects-list" class="profile-entry-list"></div></section>
+              <section><div class="profile-depth-heading"><h4>Accomplishments</h4><span id="accomplishments-count">0</span></div><div id="accomplishments-list" class="profile-entry-list"></div></section>
+            </div>
+          </section>
+
+          <section class="profile-section-card intent-card">
+            <div class="profile-section-number">2</div>
+            <div class="profile-section-copy">
+              <span class="modal-kicker">SEARCH INTENT</span>
+              <h3>What I want</h3>
+              <p>These choices define role-family, domain, seniority, location, and exclusions.</p>
+            </div>
+            <div class="profile-fields two-column">
+              <label class="field-label">Search name<input id="intent-name" type="text" placeholder="Public-sector solutions engineering"></label>
+              <label class="field-label">Seniority<select id="intent-seniority"><option>Internship</option><option>Entry level</option><option>Associate</option><option>Mid level</option><option>Senior</option></select></label>
+              <label class="field-label wide">Target titles <span class="field-help">JobTrail treats these as one role family</span><input id="intent-titles" type="text" placeholder="Solutions Engineer, Solutions Architect, Customer Engineer, Sales Engineer"></label>
+              <label class="field-label">Locations<input id="intent-location" type="text" placeholder="New York, NY or Remote"></label>
+              <label class="field-label">Employment types<input id="intent-employment" type="text" placeholder="Full-time, Internship"></label>
+              <label class="field-label">Industries or domains<input id="intent-industries" type="text" placeholder="Public sector, Government, Cloud"></label>
+              <label class="field-label">Positive keywords<input id="intent-keywords" type="text" placeholder="Federal, AWS, Azure, APIs"></label>
+              <label class="field-label wide">Exclude jobs containing<input id="intent-excluded" type="text" placeholder="Principal, Director, commission only"></label>
+              <label class="field-label">Minimum score<select id="intent-score"><option value="50">50%</option><option value="60">60%</option><option value="65">65%</option><option value="70">70%</option><option value="80">80%</option></select></label>
+            </div>
+          </section>
+
+          <section class="profile-section-card email-card">
+            <div class="profile-section-number">3</div>
+            <div class="profile-section-copy">
+              <span class="modal-kicker">MORE JOB SOURCES</span>
+              <h3>Job alert inbox</h3>
+              <p>Let Gmail collect real LinkedIn, Glassdoor, and Handshake alerts without scraping those sites.</p>
+            </div>
+            <div class="gmail-panel">
+              <div class="gmail-heading">
+                <div class="gmail-logo">M</div>
+                <div><strong>Gmail job alerts</strong><span id="gmail-account">Checking connection…</span></div>
+                <span class="gmail-badge" id="gmail-badge">Checking</span>
+              </div>
+              <p id="gmail-help">JobTrail requests read-only access and only searches for job-alert messages.</p>
+              <div class="gmail-setup" id="gmail-setup">
+                <label class="email-upload">Choose Google OAuth JSON<input id="gmail-credential-file" type="file" accept="application/json,.json"></label>
+                <button class="secondary-button" id="gmail-upload-credentials" type="button">Add Google connection file</button>
+                <details class="gmail-manual">
+                  <summary>Enter desktop credentials manually</summary>
+                  <label class="field-label">Client ID<input id="gmail-client-id" type="text" autocomplete="off"></label>
+                  <label class="field-label">Client secret<input id="gmail-client-secret" type="password" autocomplete="off"></label>
+                  <button class="secondary-button" id="gmail-save-manual" type="button">Save Google credentials locally</button>
+                </details>
+              </div>
+              <div class="gmail-actions">
+                <button class="primary-button gmail-connect" id="gmail-connect" type="button">Connect Gmail</button>
+                <button class="secondary-button" id="gmail-sync" type="button">Sync now</button>
+              </div>
+              <div class="gmail-settings">
+                <label class="field-label wide">Gmail search query<input id="gmail-query" type="text"></label>
+                <label class="field-label">Check for alerts<select id="gmail-interval"><option value="5">Every 5 minutes</option><option value="15">Every 15 minutes</option><option value="30">Every 30 minutes</option><option value="60">Every hour</option></select></label>
+                <label class="toggle-row gmail-toggle"><span><strong>Automatic syncing</strong><small>Runs while JobTrail is open</small></span><input id="gmail-enabled" type="checkbox"></label>
+                <button class="secondary-button" id="gmail-save" type="button">Save Gmail settings</button>
+              </div>
+              <p class="gmail-recommendation"><strong>Recommended:</strong> create a Gmail label named JobTrail and use <code>label:JobTrail newer_than:30d</code>. Keep LinkedIn and Handshake alerts daily; Speed Mode checks Gmail every 5 minutes.</p>
+              <div class="gmail-stats" id="gmail-stats"></div>
+              <div class="import-error" id="gmail-status" role="status"></div>
+            </div>
+            <details class="manual-email-import">
+              <summary>Manual .eml import fallback</summary>
+              <p>If Gmail is unavailable, saved alert emails can still be imported locally.</p>
+              <label class="email-upload">Choose .eml job alerts<input id="email-alert-files" type="file" accept=".eml,message/rfc822" multiple></label>
+              <button class="secondary-button" id="import-email-alerts" type="button">Import alert emails</button>
+              <div class="import-error" id="email-import-status" role="status"></div>
+            </details>
+          </section>
+
+          <div class="profile-save-bar">
+            <span id="profile-save-status">Changes are stored locally in SQLite.</span>
+            <button class="primary-button" type="submit">Save profile and rescore jobs</button>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <dialog id="detail-dialog" class="modal">
+    <button class="modal-close" data-close="detail-dialog" aria-label="Close">×</button>
+    <div id="detail-content"></div>
+  </dialog>
+
+  <dialog id="settings-dialog" class="modal compact-modal">
+    <button class="modal-close" data-close="settings-dialog" aria-label="Close">×</button>
+    <span class="modal-kicker">SPEED MODE SETTINGS</span>
+    <h2>Collection and reports</h2>
+    <p class="modal-intro">Five-minute scans power the urgent queue; reports remain useful as summaries.</p>
+    <form id="settings-form">
+      <label class="toggle-row"><span><strong>Background collection</strong><small>Collect while this local server is running</small></span><input id="schedule-enabled" type="checkbox" checked></label>
+      <label class="field-label">Collection interval<select id="collection-interval"><option value="5" selected>Every 5 minutes</option><option value="15">Every 15 minutes</option><option value="30">Every 30 minutes</option><option value="60">Every hour</option></select></label>
+      <label class="field-label">Morning digest time<input id="morning-time" type="time" value="08:00"></label>
+      <label class="field-label">Evening digest time<input id="evening-time" type="time" value="18:00"></label>
+      <label class="field-label">Timezone<input id="schedule-timezone" type="text" value="America/New_York"></label>
+      <button class="primary-button full-width" type="submit">Save preferences</button>
+    </form>
+  </dialog>
+
+  <dialog id="profile-dialog" class="modal compact-modal">
+    <button class="modal-close" data-close="profile-dialog" aria-label="Close">×</button>
+    <span class="modal-kicker">SEARCH PROFILE</span>
+    <h2>What are you looking for?</h2>
+    <p class="modal-intro">These preferences drive matching and your daily reports.</p>
+    <form id="profile-form">
+      <label class="field-label">Target role<input id="profile-role-input" type="text" placeholder="Technology roles"></label>
+      <label class="field-label">Location<input id="profile-location-input" type="text" placeholder="Remote or United States"></label>
+      <label class="field-label">Key skills<input id="profile-skills-input" type="text" placeholder="Add comma-separated skills"></label>
+      <label class="field-label">Minimum match<select id="profile-score-input"><option value="70">70%</option><option value="80" selected>80%</option><option value="90">90%</option></select></label>
+      <button class="secondary-button full-width" id="profile-import-shortcut" type="button">Build from LinkedIn + CV</button>
+      <button class="primary-button full-width" type="submit">Update search profile</button>
+    </form>
+  </dialog>
+
+  <dialog id="import-dialog" class="modal import-modal">
+    <button class="modal-close" data-close="import-dialog" aria-label="Close">×</button>
+    <div id="import-upload-view">
+      <span class="modal-kicker">PRIVATE LOCAL IMPORT</span>
+      <h2>Build your profile from your files</h2>
+      <p class="modal-intro">Add a LinkedIn profile export, your CV, or both. JobTrail reads them on this computer and suggests a search profile. Files are not saved.</p>
+
+      <div class="privacy-note"><span>◉</span><div><strong>Processed by Qwen on localhost</strong><small>Your local Ollama model analyzes the text. Raw files and extracted text are not saved.</small></div></div>
+
+      <form id="import-form">
+        <div class="upload-grid">
+          <label class="upload-zone" for="linkedin-file">
+            <span class="upload-icon">in</span>
+            <strong>LinkedIn profile</strong>
+            <small>PDF, HTML, JSON, CSV, or TXT</small>
+            <span class="file-name" id="linkedin-file-name">Choose file</span>
+            <input id="linkedin-file" name="linkedin" type="file" accept=".pdf,.html,.htm,.json,.csv,.txt,.md">
+          </label>
+          <label class="upload-zone" for="resume-file">
+            <span class="upload-icon document-icon">CV</span>
+            <strong>Resume or CV</strong>
+            <small>PDF, DOCX, TXT, or Markdown</small>
+            <span class="file-name" id="resume-file-name">Choose file</span>
+            <input id="resume-file" name="resume" type="file" accept=".pdf,.docx,.txt,.md">
+          </label>
+        </div>
+        <div class="import-error" id="import-error" role="alert"></div>
+        <button class="primary-button full-width" id="analyze-button" type="submit">Analyze files locally</button>
+      </form>
+    </div>
+
+    <div id="import-review-view" hidden>
+      <span class="modal-kicker">AI PROFILE SUGGESTION</span>
+      <h2>Review what JobTrail found</h2>
+      <p class="modal-intro" id="import-summary"></p>
+      <div class="ai-review-badge" id="import-ai-status"></div>
+      <div class="import-error" id="import-warning"></div>
+      <div class="document-summary" id="document-summary"></div>
+      <form id="import-review-form">
+        <label class="field-label">Name<input id="import-name" type="text"></label>
+        <label class="field-label">Professional headline<input id="import-headline" type="text"></label>
+        <label class="field-label">Suggested target role<input id="import-role" type="text"></label>
+        <label class="field-label">Preferred location<input id="import-location" type="text"></label>
+        <label class="field-label">Skills<input id="import-skills" type="text"></label>
+        <div class="import-rich-preview" id="import-rich-preview"></div>
+        <div class="evidence-list" id="import-evidence"></div>
+        <div class="modal-actions">
+          <button class="secondary-button" id="back-to-upload" type="button">Back</button>
+          <button class="primary-button" type="submit">Use this profile</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <script src="app.js?v=7"></script>
+</body>
+</html>
