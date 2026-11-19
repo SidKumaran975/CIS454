@@ -116,6 +116,24 @@ The first run creates a new local `data/jobtrail.db`; it does not download the
 developer's profile, Gmail token, résumé, or database. Gmail and local-AI
 profile analysis are optional and can be configured from the profile page.
 
+### One-command launcher
+
+On macOS or Linux, the repository includes a launcher that creates the virtual
+environment, installs changed dependencies, starts Ollama when it is installed,
+starts JobTrail, and opens the browser:
+
+```bash
+cd CIS454
+./launch_jobtrail.sh
+```
+
+If macOS blocks direct execution after downloading the file, run:
+
+```bash
+chmod +x launch_jobtrail.sh
+./launch_jobtrail.sh
+```
+
 ## Connect Gmail job alerts
 
 Gmail gives JobTrail a safe way to collect LinkedIn, Glassdoor, and Handshake
